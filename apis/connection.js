@@ -255,6 +255,37 @@ var addConnctionAPI = function(Modbus) {
         // open and call next
         return open(this, next);
     };
+
+    /**
+     * Connect to a communication port, using SocketPort.
+     *
+     * @param {Socket} socket the socket to connect to - required.
+     * @param {Object} options - the serial port options - optional.
+     * @param {Function} next the function to call next.
+     */
+    cl.connectSocket = function(socket, options, next) {
+        // check if we have options
+        if (typeof next === "undefined" && typeof options === "function") {
+            next = options;
+            options = {};
+        }
+
+        // check if we have options
+        if (typeof options === "undefined") {
+            options = {};
+        }
+
+        // create the TcpPort
+        var SocketPort = require("../ports/socketport");
+        if (this._timeout) {
+            options.timeout = this._timeout;
+        }
+        this._port = new SocketPort(socket, options);
+
+        // open and call next
+        return open(this, next);
+    };
+
 };
 
 /**

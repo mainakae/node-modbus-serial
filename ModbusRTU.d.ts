@@ -1,3 +1,5 @@
+import {Socket} from 'net';
+
 export class ModbusRTU {
   constructor(port?: any);
 
@@ -29,6 +31,8 @@ export class ModbusRTU {
   connectRTUBuffered(path: string, options: SerialPortOptions): Promise<void>;
   connectAsciiSerial(path: string, options: SerialPortOptions, next: Function): void;
   connectAsciiSerial(path: string, options: SerialPortOptions): Promise<void>;
+  connectSocket(socket: Socket, options: TcpPortOptions, next: Function): void;
+  connectSocket(socket: Socket, options: TcpPortOptions): Promise<void>;
 
   // Promise API
   setID(id: number): void;

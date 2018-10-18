@@ -20,7 +20,6 @@ var EventEmitter = events.EventEmitter || events;
 var net = require("net");
 var modbusSerialDebug = require("debug")("modbus-serial");
 
-var HOST = "127.0.0.1";
 var UNIT_ID = 255; // listen to all adresses
 var MODBUS_PORT = 502;
  // Not really its official length, but we parse UnitID as part of PDU
@@ -288,7 +287,7 @@ var ReverseServerTCP = function(vector, options) {
 
     EventEmitter.call(this);
 
-    modbus._server.connect(options.port || MODBUS_PORT, options.host)
+    modbus._server.connect(options.port || MODBUS_PORT, options.host);
 };
 util.inherits(ReverseServerTCP, EventEmitter);
 

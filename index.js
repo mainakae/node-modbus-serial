@@ -238,6 +238,7 @@ ModbusRTU.prototype.open = function(callback) {
 
                 // the _transactionIdRead can be missing, ignore wrong transaction it's
                 if (!transaction) {
+                    modbusSerialDebug({ action: "received idRead out of??", error: error });
                     return;
                 }
 
@@ -745,3 +746,4 @@ module.exports.C701Port = require("./ports/c701port");
 
 module.exports.ServerTCP = require("./servers/servertcp");
 module.exports.ReverseServerTCP = require("./servers/reverseservertcp");
+module.exports.ReverseClientSpawner = require("./servers/reverseclientspawner");
