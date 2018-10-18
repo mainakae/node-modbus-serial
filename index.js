@@ -744,3 +744,4 @@ module.exports.TelnetPort = require("./ports/telnetport");
 module.exports.C701Port = require("./ports/c701port");
 
 module.exports.ServerTCP = require("./servers/servertcp");
+module.exports.ReverseServerTCP = require("./servers/reverseservertcp");
