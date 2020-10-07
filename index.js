@@ -994,9 +994,7 @@ module.exports.TelnetPort = require("./ports/telnetport");
 module.exports.C701Port = require("./ports/c701port");
 
 module.exports.ServerTCP = require("./servers/servertcp");
-<<<<<<< HEAD
 module.exports.ReverseServerTCP = require("./servers/reverseservertcp");
 module.exports.ReverseClientSpawner = require("./servers/reverseclientspawner");
-=======
+
 module.exports.default = module.exports;
->>>>>>> upstream/master

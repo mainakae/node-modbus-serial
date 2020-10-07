@@ -33,6 +33,8 @@ export class ModbusRTU {
   connectRTUBuffered(path: string, options: SerialPortOptions): Promise<void>;
   connectAsciiSerial(path: string, options: SerialPortOptions, next: Function): void;
   connectAsciiSerial(path: string, options: SerialPortOptions): Promise<void>;
+  connectAsciiTelnet(ip: string, options: TelnetPortOptions, next: Function): void;
+  connectAsciiTelnet(ip: string, options: TelnetPortOptions): Promise<void>;
   connectSocket(socket: Socket, options: TcpPortOptions, next: Function): void;
   connectSocket(socket: Socket, options: TcpPortOptions): Promise<void>;
 

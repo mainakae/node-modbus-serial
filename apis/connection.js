@@ -284,6 +284,36 @@ var addConnctionAPI = function(Modbus) {
     };
 
     /**
+     * Connect to a communication port, using ASCII Serial port.
+     *
+     * @param {string} path the path to the Serial Port - required.
+     * @param {Object} options - the serial port options - optional.
+     * @param {Function} next the function to call next.
+     */
+    cl.connectAsciiTelnet = function(ip, options, next) {
+        // check if we have options
+        if (typeof next === "undefined" && typeof options === "function") {
+            next = options;
+            options = {};
+        }
+
+        // check if we have options
+        if (typeof options === "undefined") {
+            options = {};
+        }
+
+        // create the TcpPort
+        var AsciiTelnetPort = require("../ports/asciitelnetport");
+        if (this._timeout) {
+            options.timeout = this._timeout;
+        }
+        this._port = new AsciiTelnetPort(ip, options);
+
+        // open and call next
+        return open(this, next);
+    };
+
+    /**
      * Connect to a communication port, using SocketPort.
      *
      * @param {Socket} socket the socket to connect to - required.
