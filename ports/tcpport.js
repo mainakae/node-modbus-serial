@@ -19,18 +19,25 @@ var CRC_LENGTH = 2;
  *
  * @param ip
  * @param options
+ *   options.port: Nonstandard Modbus port (default is 502).
+ *   options.localAddress: Local IP address to bind to, default is any.
+ *   options.family: 4 = IPv4-only, 6 = IPv6-only, 0 = either (default).
  * @constructor
  */
 var TcpPort = function(ip, options) {
     var modbus = this;
-    this.ip = ip;
     this.openFlag = false;
     this.callback = null;
     this._transactionIdWrite = 1;
 
     // options
     if (typeof(options) === "undefined") options = {};
-    this.port = options.port || MODBUS_PORT; // modbus port
+    this.connectOptions = {
+        host: ip,
+        port: options.port || MODBUS_PORT,
+        localAddress: options.localAddress,
+        family: options.family
+    };
 
     // handle callback - call a callback function only once, for the first event
     // it will triger
@@ -87,6 +94,7 @@ var TcpPort = function(ip, options) {
         modbus.openFlag = false;
         modbusSerialDebug("TCP port: signal close: " + had_error);
         handleCallback(had_error);
+        modbus.emit("close");
     });
 
     this._client.on("error", function(had_error) {
@@ -96,9 +104,11 @@ var TcpPort = function(ip, options) {
     });
 
     this._client.on("timeout", function() {
-        modbus.openFlag = false;
+        // modbus.openFlag is left in its current state as it reflects two types of timeouts,
+        // i.e. 'false' for "TCP connection timeout" and 'true' for "Modbus response timeout"
+        // (this allows to continue Modbus request re-tries without reconnecting TCP).
         modbusSerialDebug("TCP port: TimedOut");
-        handleCallback(new Error("TCP Connection Timed Out."));
+        handleCallback(new Error("TCP Connection Timed Out"));
     });
 
     /**
@@ -124,7 +134,7 @@ util.inherits(TcpPort, EventEmitter);
  */
 TcpPort.prototype.open = function(callback) {
     this.callback = callback;
-    this._client.connect(this.port, this.ip);
+    this._client.connect(this.connectOptions);
 };
 
 /**

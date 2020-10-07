@@ -23,7 +23,8 @@ var modbusSerialDebug = require("debug")("modbus-serial");
 var HOST = "127.0.0.1";
 var UNIT_ID = 255; // listen to all adresses
 var MODBUS_PORT = 502;
- // Not really its official length, but we parse UnitID as part of PDU
+
+// Not really its official length, but we parse UnitID as part of PDU
 const MBAP_LEN = 6;
 
 /* Get Handlers
@@ -173,6 +174,9 @@ function _parseModbusBuffer(requestBuffer, vector, serverUnitID, sockWriter) {
         case 16:
             handlers.writeMultipleRegisters(requestBuffer, vector, unitID, cb);
             break;
+        case 43:
+            handlers.handleMEI(requestBuffer, vector, unitID, cb);
+            break;
         default:
             var errorCode = 0x01; // illegal function
 
@@ -199,21 +203,38 @@ function _parseModbusBuffer(requestBuffer, vector, serverUnitID, sockWriter) {
 var ServerTCP = function(vector, options) {
     var modbus = this;
     options = options || {};
-    var recvBuffer = Buffer.from([]);
 
     // create a tcp server
     modbus._server = net.createServer();
-    modbus._server.listen(options.port || MODBUS_PORT, options.host || HOST);
+    modbus._server.listen({
+        port: options.port || MODBUS_PORT,
+        host: options.host || HOST
+    }, function() {
+        modbus.emit("initialized");
+    });
 
     // create a server unit id
     var serverUnitID = options.unitID || UNIT_ID;
 
+    // remember open sockets
+    modbus.socks = new Map();
+
     modbus._server.on("connection", function(sock) {
+        var recvBuffer = Buffer.from([]);
+        modbus.socks.set(sock, 0);
+
         modbusSerialDebug({
             action: "connected",
             address: sock.address(),
             remoteAddress: sock.remoteAddress,
-            remotePort: sock.remotePort
+            localPort: sock.localPort
+        });
+
+        sock.once("close", function() {
+            modbusSerialDebug({
+                action: "closed"
+            });
+            modbus.socks.delete(sock);
         });
 
         sock.on("data", function(data) {
@@ -293,10 +314,16 @@ util.inherits(ServerTCP, EventEmitter);
 * @param callback
 */
 ServerTCP.prototype.close = function(callback) {
+    const modbus = this;
+
     // close the net port if exist
-    if (this._server) {
-        this._server.removeAllListeners("data");
-        this._server.close(callback);
+    if (modbus._server) {
+        modbus._server.removeAllListeners("data");
+        modbus._server.close(callback);
+
+        modbus.socks.forEach(function(e, sock) {
+            sock.destroy();
+        });
 
         modbusSerialDebug({ action: "close server" });
     } else {

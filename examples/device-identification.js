@@ -1,26 +1,24 @@
 /* eslint-disable no-console, spaced-comment */
 
-/* DEBUG environment variable is used to enable debug logging
-
-  Set the DEBUG variable to be "modbus-serial" before running this example:
-  export DEBUG=modbus-serial
-
-  To stop debugging, unset the DEBUG variable:
-  unset DEBUG
- */
-
 // create an empty modbus client
 //var ModbusRTU = require("modbus-serial");
 var ModbusRTU = require("../index");
 var client = new ModbusRTU();
 
+var networkErrors = ["ESOCKETTIMEDOUT", "ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EHOSTUNREACH"];
+
 // open connection to a serial port
-//client.connectRTUBuffered("/dev/ttyUSB0", {baudRate: 9600})
+//client.connectRTUBuffered("/dev/ttyUSB0", { hupcl: false, dsrdtr: false })
 client.connectTCP("127.0.0.1", { port: 8502 })
     .then(setClient)
     .then(function() {
         console.log("Connected"); })
     .catch(function(e) {
+        if(e.errno) {
+            if(networkErrors.includes(e.errno)) {
+                console.log("we have to reconnect");
+            }
+        }
         console.log(e.message); });
 
 function setClient() {
@@ -30,12 +28,12 @@ function setClient() {
     client.setTimeout(1000);
 
     // run program
-    run();
+    readDeviceIdentification();
 }
 
-function run() {
+function readDeviceIdentification() {
     // read the 4 registers starting at address 5
-    client.readHoldingRegisters(5, 4)
+    client.readDeviceIdentification(1, 0)
         .then(function(d) {
             console.log("Receive:", d.data); })
         .catch(function(e) {

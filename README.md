@@ -57,14 +57,17 @@ This module has not been tested on every single version of NodeJS. For best resu
 
 ###### These classes are implemented:
 
-* FC1 "Read Coil Status"
-* FC2 "Read Input Status"
-* FC3 "Read Holding Registers"
-* FC4 "Read Input Registers"
-* FC5 "Force Single Coil"
-* FC6 "Preset Single Register"
-* FC15 "Force Multiple Coil"
-* FC16 "Preset Multiple Registers"
+| Class | Function |
+|-------|----------|
+| FC1 "Read Coil Status" | `readCoils(coil, len)` |
+| FC2 "Read Input Status" | `readDiscreteInputs(addr, arg)` |
+| FC3 "Read Holding Registers" | `readHoldingRegisters(addr, len) ` |
+| FC4 "Read Input Registers" | `readInputRegisters(addr, len) ` |
+| FC5 "Force Single Coil" | `writeCoil(coil, binary) //NOT setCoil` |
+| FC6 "Preset Single Register"
+| FC15 "Force Multiple Coil" | `writeRegister(addr, value)` |
+| FC16 "Preset Multiple Registers" | `writeRegisters(addr, valueAry)` |
+| FC43/14 "Read Device Identification" (supported ports: TCP, RTU) | `readDeviceIdentification(id, obj)` |
 
 ###### Client Serial:
 
@@ -93,7 +96,7 @@ var ModbusRTU = require("modbus-serial");
 var client = new ModbusRTU();
 
 // open connection to a serial port
-client.connectRTU("/dev/ttyUSB0", { baudRate: 9600 }, write);
+client.connectRTUBuffered("/dev/ttyUSB0", { baudRate: 9600 }, write);
 
 function write() {
     client.setID(1);
@@ -205,6 +208,25 @@ setInterval(function() {
 }, 1000);
 ```
 ----
+###### Logger UDP
+``` javascript
+// create an empty modbus client
+var ModbusRTU = require("modbus-serial");
+var client = new ModbusRTU();
+
+// open connection to a udp line
+client.connectUDP("127.0.0.1", { port: 8502 });
+client.setID(1);
+
+// read the values of 10 registers starting at address 0
+// on device number 1. and log the values to the console.
+setInterval(function() {
+    client.readHoldingRegisters(0, 10, function(err, data) {
+        console.log(data.data);
+    });
+}, 1000);
+```
+----
 ###### ModbusTCP Server
 ``` javascript
 // create an empty modbus client
@@ -238,6 +260,16 @@ var vector = {
         // Asynchronous handling supported also here
         console.log("set coil", addr, value, unitID);
         return;
+    },
+    readDeviceIdentification: function(addr) {
+        return {
+            0x00: "MyVendorName",
+            0x01: "MyProductCode",
+            0x02: "MyMajorMinorRevision",
+            0x05: "MyModelName",
+            0x97: "MyExtendedObject1",
+            0xAB: "MyExtendedObject2"
+        };
     }
 };
 

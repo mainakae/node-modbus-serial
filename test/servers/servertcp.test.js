@@ -17,20 +17,20 @@ describe("Modbus TCP Server (no serverID)", function() {
                 if (addr === 62)
                     throw new Error();
 
-                console.log("Holding register: ", addr);
+                console.log("\tHolding register: ", addr);
 
                 return addr + 8000;
             },
             getCoil: function(addr) {
-                console.log("Holding register: ", addr);
+                console.log("\tHolding register: ", addr);
                 return (addr % 2) === 0;
             },
             setRegister: function(addr, value) {
-                console.log("set register", addr, value);
+                console.log("\tset register", addr, value);
                 return;
             },
             setCoil: function(addr, value) {
-                console.log("set coil", addr, value);
+                console.log("\tset coil", addr, value);
                 return;
             }
         };
@@ -51,6 +51,8 @@ describe("Modbus TCP Server (no serverID)", function() {
             client.once("data", function(data) {
                 // FC05 - valid responce
                 expect(data.toString("hex")).to.equal("00010000000601050005ff00");
+
+                client.end();
                 done();
             });
         });
@@ -68,6 +70,8 @@ describe("Modbus TCP Server (no serverID)", function() {
             client.once("data", function(data) {
                 // A valid error message, code 0x01 - Illegal fanction
                 expect(data.toString("hex")).to.equal("000100000003018701");
+
+                client.end();
                 done();
             });
         });
@@ -81,6 +85,8 @@ describe("Modbus TCP Server (no serverID)", function() {
             client.once("data", function(data) {
                 // A valid error message, code 0x04 - Slave failure
                 expect(data.toString("hex")).to.equal("000100000003018304");
+
+                client.end();
                 done();
             });
         });
@@ -98,6 +104,56 @@ describe("Modbus TCP Server (no serverID)", function() {
 
             serverTCP.on("socketError", function() {
                 // Error handled correctly
+                client.end();
+                done();
+            });
+        });
+
+        // TODO: exceptions
+    });
+
+    describe("large client request", function() {
+        it("should handle a large request without crash successfully (FC1)", function(done) {
+            var client = net.connect({ host: "0.0.0.0", port: 8512 }, function() {
+                // request 65535 registers at once
+                client.write(Buffer.from("0001000000060101003EFFFF", "hex"));
+            });
+
+            client.once("data", function(data) {
+                // A valid error message, code 0x04 - Slave failure
+                expect(data.toString("hex")).to.equal("000100000003018104");
+
+                client.end();
+                done();
+            });
+        });
+
+        it("should handle a large request without crash successfully (FC3)", function(done) {
+            var client = net.connect({ host: "0.0.0.0", port: 8512 }, function() {
+                // request 65535 registers at once
+                client.write(Buffer.from("0001000000060103003EFFFF", "hex"));
+            });
+
+            client.once("data", function(data) {
+                // A valid error message, code 0x04 - Slave failure
+                expect(data.toString("hex")).to.equal("000100000003018304");
+
+                client.end();
+                done();
+            });
+        });
+
+        it("should handle a large request without crash successfully (FC4)", function(done) {
+            var client = net.connect({ host: "0.0.0.0", port: 8512 }, function() {
+                // request 65535 registers at once
+                client.write(Buffer.from("0001000000060104003EFFFF", "hex"));
+            });
+
+            client.once("data", function(data) {
+                // A valid error message, code 0x04 - Slave failure
+                expect(data.toString("hex")).to.equal("000100000003018404");
+
+                client.end();
                 done();
             });
         });
@@ -112,7 +168,7 @@ describe("Modbus TCP Server (serverID = requestID)", function() {
     before(function() {
         var vector = {
             setCoil: function(addr, value) {
-                console.log("set coil", addr, value);
+                console.log("\tset coil", addr, value);
                 return;
             }
         };
@@ -133,6 +189,8 @@ describe("Modbus TCP Server (serverID = requestID)", function() {
             client.once("data", function(data) {
                 // FC05 - valid responce
                 expect(data.toString("hex")).to.equal("00010000000604050005ff00");
+
+                client.end();
                 done();
             });
         });
@@ -145,7 +203,7 @@ describe("Modbus TCP Server (serverID != requestID)", function() {
     before(function() {
         var vector = {
             setCoil: function(addr, value) {
-                console.log("set coil", addr, value);
+                console.log("\tset coil", addr, value);
                 return;
             }
         };
@@ -172,6 +230,8 @@ describe("Modbus TCP Server (serverID != requestID)", function() {
 
                 // FC05 - we expect no data for wrong unitID
                 expect(data.toString("hex")).to.equal("NO DATA");
+
+                client.end();
                 done();
             });
         });

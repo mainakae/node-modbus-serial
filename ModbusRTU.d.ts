@@ -21,6 +21,8 @@ export class ModbusRTU {
   connectRTU(path: string, options: SerialPortOptions): Promise<void>;
   connectTCP(ip: string, options: TcpPortOptions, next: Function): void;
   connectTCP(ip: string, options: TcpPortOptions): Promise<void>;
+  connectUDP(ip: string, options: UdpPortOptions, next: Function): void;
+  connectUDP(ip: string, options: UdpPortOptions): Promise<void>;
   connectTcpRTUBuffered(ip: string, options: TcpRTUPortOptions, next: Function): void;
   connectTcpRTUBuffered(ip: string, options: TcpRTUPortOptions): Promise<void>;
   connectTelnet(ip: string, options: TelnetPortOptions, next: Function): void;
@@ -48,6 +50,8 @@ export class ModbusRTU {
   writeCoils(dataAddress: number, states: Array<boolean>): Promise<WriteMultipleResult>;
   writeRegister(dataAddress: number, value: number): Promise<WriteRegisterResult>;
   writeRegisters(dataAddress: number, values: Array<number>): Promise<WriteMultipleResult>; // 16
+  
+  isOpen: boolean;
 }
 
 export interface NodeStyleCallback<T> {
@@ -101,10 +105,20 @@ export interface SerialPortUnixPlatformOptions {
 
 export interface TcpPortOptions {
   port?: number;
+  localAddress?: string;
+  family?: number;
+}
+
+export interface UdpPortOptions {
+  port?: number;
+  localAddress?: string;
+  family?: number;
 }
 
 export interface TcpRTUPortOptions {
   port?: number;
+  localAddress?: string;
+  family?: number;
 }
 
 export interface TelnetPortOptions {
