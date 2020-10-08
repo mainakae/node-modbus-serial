@@ -147,6 +147,7 @@ function _readFC6(data, next) {
         next(null, { "address": dataAddress, "value": value });
 }
 
+// FIXME: modbus ex
 /**
  * Parse the data for a Modbus -
  * Preset Multiple Registers (FC=15, 16)
@@ -838,6 +839,7 @@ ModbusRTU.prototype.writeFC15 = function(address, dataAddress, array, next) {
     _writeBufferToPort.call(this, buf, this._port._transactionIdWrite);
 };
 
+// FIXME: modbus ex
 /**
  * Write a Modbus "Preset Multiple Registers" (FC=16) to serial port.
  *
@@ -875,21 +877,21 @@ ModbusRTU.prototype.writeFC16 = function(address, dataAddress, array, next) {
         dataLength = array.length / 2;
     }
 
-    var codeLength = 7 + 2 * dataLength;
+    var codeLength = 10 + dataLength;
     var buf = Buffer.alloc(codeLength + 2); // add 2 crc bytes
 
-    buf.writeUInt8(address, 0);
-    buf.writeUInt8(code, 1);
-    buf.writeUInt16BE(dataAddress, 2);
-    buf.writeUInt16BE(dataLength, 4);
-    buf.writeUInt8(dataLength * 2, 6);
+    buf.writeUInt16BE(address, 0);
+    buf.writeUInt8(code, 2);
+    buf.writeUInt32BE(dataAddress, 3);
+    buf.writeUInt16BE(dataLength, 7);
+    buf.writeUInt8(0, 9);
 
     // copy content of array to buf
     if (Buffer.isBuffer(array)) {
-        array.copy(buf, 7);
+        array.copy(buf, 10);
     } else {
         for (var i = 0; i < dataLength; i++) {
-            buf.writeUInt16BE(array[i], 7 + 2 * i);
+            buf.writeUInt8(array[i], 10 + i);
         }
     }
 

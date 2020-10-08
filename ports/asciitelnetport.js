@@ -14,6 +14,7 @@ var MIN_DATA_LENGTH = 6;
 var TELNET_PORT = 2217;
 
 
+// FIXME: modbus ex
 /**
  * Ascii encode a 'request' buffer and return it. This includes removing
  * the CRC bytes and replacing them with an LRC.
@@ -43,6 +44,7 @@ function _asciiEncodeRequestBuffer(buf) {
     return bufAscii;
 }
 
+// FIXME: modbus ex
 /**
  * Ascii decode a 'response' buffer and return it.
  *
