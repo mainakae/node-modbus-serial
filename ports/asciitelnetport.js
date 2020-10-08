@@ -36,8 +36,12 @@ function _asciiEncodeRequestBuffer(buf) {
     // start with the single start delimiter
     bufAscii.write(":", 0);
     // encode the data, with the new single byte lrc
-    bufAscii.write(buf.toString("hex", 0, buf.length - 1).toUpperCase(), 1);
+    // bufAscii.write(buf.toString("hex", 0, buf.length - 1).toUpperCase(), 1);     // uncomment if LRC is well calculated
+    bufAscii.write(buf.toString("hex", 0, buf.length - 2).toUpperCase(), 1);    // FIX for tesyse wrong LRC
     // end with the two end delimiters
+    bufAscii.write(calculateLrc(bufAscii.slice(1, -2))
+        .toString(16)
+        .toUpperCase(), bufAscii.length - 4);
     bufAscii.write("\r", bufAscii.length - 2);
     bufAscii.write("\n", bufAscii.length - 1);
 
