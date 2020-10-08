@@ -39,7 +39,7 @@ function _asciiEncodeRequestBuffer(buf) {
     // bufAscii.write(buf.toString("hex", 0, buf.length - 1).toUpperCase(), 1);     // uncomment if LRC is well calculated
     bufAscii.write(buf.toString("hex", 0, buf.length - 2).toUpperCase(), 1);    // FIX for tesyse wrong LRC
     // end with the two end delimiters
-    bufAscii.write(calculateLrc(bufAscii.slice(1, -2))
+    bufAscii.write(calculateLrc(bufAscii.slice(1, -2))      // REMOVE this if lrc is well calulated
         .toString(16)
         .toUpperCase(), bufAscii.length - 4);
     bufAscii.write("\r", bufAscii.length - 2);
@@ -66,15 +66,26 @@ function _asciiDecodeResponseBuffer(bufAscii) {
         bufDecoded.write(String.fromCharCode(bufAscii.readUInt8(i * 2 + 1), bufAscii.readUInt8(i * 2 + 2)), i, 1, "hex");
     }
 
-    // check the lrc is true
+
+    // FIX for modbus EX (which doesn't calculate LRC right)
     var lrcIn = bufDecoded.readUInt8(bufDecoded.length - 2);
-    if(calculateLrc(bufDecoded.slice(0, -2)) !== lrcIn) {
+    if(calculateLrc(calculateLrc(bufAscii.slice(1, -2)) !== lrcIn) {
         // return null if lrc error
         var calcLrc = calculateLrc(bufDecoded.slice(0, -2));
 
         modbusSerialDebug({ action: "LRC error", LRC: lrcIn.toString(16), calcLRC: calcLrc.toString(16) });
         return null;
     }
+
+    // check the lrc is true
+    // var lrcIn = bufDecoded.readUInt8(bufDecoded.length - 2);
+    // if(calculateLrc(bufDecoded.slice(0, -2)) !== lrcIn) {
+    //     // return null if lrc error
+    //     var calcLrc = calculateLrc(bufDecoded.slice(0, -2));
+
+    //     modbusSerialDebug({ action: "LRC error", LRC: lrcIn.toString(16), calcLRC: calcLrc.toString(16) });
+    //     return null;
+    // }
 
     // replace the 1 byte lrc with a two byte crc16
     bufDecoded.writeUInt16LE(crc16(bufDecoded.slice(0, -2)), bufDecoded.length - 2);
